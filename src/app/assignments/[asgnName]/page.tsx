@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Assignment from "@/app/components/Assignment/Assignment";
 import { useParams } from "next/navigation";
 
