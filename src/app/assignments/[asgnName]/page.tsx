@@ -8,6 +8,6 @@ export default function RenderAssignment() {
     const params = useParams(); // Extract route parameters
     const { asgnName } = params; // Dynamic segment [asgnName]
     if (typeof asgnName === "string") {
-      return <Assignment asgnName={decodeURIComponent(asgnName)}/>
+      return <Assignment assignmentId={decodeURIComponent(asgnName)}/>
     }
 }

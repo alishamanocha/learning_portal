@@ -4,7 +4,6 @@ import React from "react";
 
 // TODO: questions may have multiple formats (e.g., multiple choice, free response), and answer may not be a number
 type Question = {
-    id: number;
     prompt: string;
     correctAnswer: string;
 };
