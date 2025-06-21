@@ -1,44 +1,87 @@
 "use client";
 
 import React, { useState } from "react";
+import QuestionCard from "./QuestionCard";
+
+// TODO: should come from database
+const questions = [
+    { id: 1, prompt: "What is 30% of 40?", correctAnswer: "12" },
+    { id: 2, prompt: "What is 15% of 80?", correctAnswer: "12" },
+    { id: 3, prompt: "What is 50% of 90?", correctAnswer: "45" },
+];
 
 export default function Assignment({ asgnName }: { asgnName: string }) {
-    const [answer, setAnswer] = useState("");
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [answers, setAnswers] = useState<string[]>(Array(questions.length).fill(""));
     const [feedback, setFeedback] = useState("");
 
-    const correctAnswer = 0.3 * 40;
+    const handleAnswerChange = (value: string) => {
+        const updated = [...answers];
+        // Update answers array to hold user answer
+        updated[currentQuestionIndex] = value;
+        setAnswers(updated);
+        // Reset feedback
+        setFeedback("");
+    };
 
     const handleSubmit = () => {
-        if (parseFloat(answer) === correctAnswer) {
-            setFeedback("Correct!");
-        } else {
-            setFeedback("Try again.");
+        // Compare user answer to the correct answer and provide corresponding feedback
+        const correct = questions[currentQuestionIndex].correctAnswer;
+        const userAnswer = answers[currentQuestionIndex].trim();
+        setFeedback(userAnswer === correct ? "Correct!" : "Try again.");
+    };
+
+    const goToNext = () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            setCurrentQuestionIndex(i => i + 1);
+            // Reset feedback when navigating to next question
+            setFeedback("");
+        }
+    };
+
+    const goToPrevious = () => {
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(i => i - 1);
+            // Reset feedback when navigating to previous question
+            setFeedback("");
         }
     };
 
     return (
-        <div>
-            <h1 className="text-xl font-bold">{asgnName}</h1>
-            <p>What is 30% of 40?</p>
+        <div className="p-6 max-w-xl mx-auto">
+            <h1 className="text-3xl font-bold mb-6 text-center">{asgnName}</h1>
 
-            <input
-                type="number"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 text-black bg-white"
-                placeholder="Enter your answer"
-            />
+            <div className="bg-white dark:bg-neutral-900 shadow-lg rounded-2xl p-6 border border-neutral-200 dark:border-neutral-700 transition">
+                <QuestionCard
+                    question={questions[currentQuestionIndex]}
+                    answer={answers[currentQuestionIndex]}
+                    onAnswerChange={handleAnswerChange}
+                    feedback={feedback}
+                    onSubmit={handleSubmit}
+                />
 
-            <button
-                onClick={handleSubmit}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-                Submit
-            </button>
+                <div className="mt-6 flex justify-between items-center">
+                    <button
+                        onClick={goToPrevious}
+                        disabled={currentQuestionIndex === 0}
+                        className="px-4 py-2 rounded-xl border border-gray-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                        ← Previous
+                    </button>
 
-            {feedback && (
-                <p className="mt-2 text-lg font-medium">{feedback}</p>
-            )}
+                    <span className="text-sm text-muted-foreground">
+                        Question {currentQuestionIndex + 1} of {questions.length}
+                    </span>
+
+                    <button
+                        onClick={goToNext}
+                        disabled={currentQuestionIndex === questions.length - 1}
+                        className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                        Next →
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
