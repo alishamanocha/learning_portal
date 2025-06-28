@@ -43,7 +43,7 @@ export default function Course({ courseId }: { courseId: string }) {
     fetchCourseAndAssignments();
   }, [courseId]);
 
-  if (!course) {
+  if (!course || !assignments.length) {
     return <p className="text-center mt-10 text-muted-foreground">Loading course...</p>;
   }
 
