@@ -6,8 +6,8 @@ import { useParams } from "next/navigation";
 
 export default function RenderAssignment() {
     const params = useParams(); // Extract route parameters
-    const { asgnName } = params; // Dynamic segment [asgnName]
-    if (typeof asgnName === "string") {
-      return <Assignment assignmentId={decodeURIComponent(asgnName)}/>
+    const { asgnId } = params; // Dynamic segment [asgnName]
+    if (typeof asgnId === "string") {
+      return <Assignment assignmentId={decodeURIComponent(asgnId)}/>
     }
 }
