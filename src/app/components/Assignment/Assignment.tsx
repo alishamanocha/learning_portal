@@ -14,31 +14,35 @@ type AssignmentDoc = {
     title: string;
     questions: Question[];
 };
-
+// TODO: Add score based on user responses
 export default function Assignment({ assignmentId }: { assignmentId: string }) {
-    const [hasMounted, setHasMounted] = useState(false);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [assignmentTitle, setAssignmentTitle] = useState<string>("");
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<string[]>(Array(questions.length).fill(""));
     const [feedback, setFeedback] = useState("");
+    const [notFound, setNotFound] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setHasMounted(true);
-    
         const fetchAssignment = async () => {
-            const docRef = doc(db, "assignments", assignmentId);
-            const snapshot = await getDoc(docRef);
+            try {
+                const docRef = doc(db, "assignments", assignmentId);
+                const snapshot = await getDoc(docRef);
         
-            if (snapshot.exists()) {
-                const data = snapshot.data() as AssignmentDoc;
-                const withIds = data.questions.map((q, i) => ({ ...q, id: i }));
-                setAssignmentTitle(data.title);
-                setQuestions(withIds);
-                setAnswers(new Array(withIds.length).fill(""));
-            } else {
-                // TODO: Handle assignment not found better
-                console.error("Assignment not found!");
+                if (snapshot.exists()) {
+                    const data = snapshot.data() as AssignmentDoc;
+                    setAssignmentTitle(data.title);
+                    setQuestions(data.questions);
+                    setAnswers(new Array(data.questions.length).fill(""));
+                } else {
+                    setNotFound(true);
+                }
+            } catch (error) {
+                console.log("Error fetching assignment:", error);
+                setNotFound(true);
+            } finally {
+                setLoading(false);
             }
         };
         
@@ -46,14 +50,23 @@ export default function Assignment({ assignmentId }: { assignmentId: string }) {
     }, [assignmentId]);
     
     // Loading
-    if (!hasMounted || questions.length === 0) {
+    if (loading) {
         return (
-            <div className="p-6 text-center text-sm text-muted-foreground">
-                Loading assignment...
-            </div>
+          <div className="p-6 text-center text-sm text-muted-foreground">
+            Loading assignment...
+          </div>
         );
     }
-    
+
+    // Assignment not found
+    if (notFound || questions.length === 0) {
+        return (
+          <div className="p-6 text-center font-medium">
+            Assignment not found.
+          </div>
+        );
+    }
+
     const handleAnswerChange = (value: string) => {
         const updated = [...answers];
         // Update answers array to hold user answer
