@@ -1,13 +1,14 @@
 "use client";
 
-import React from "react";
 import Assignment from "@/app/components/Assignment/Assignment";
 import { useParams } from "next/navigation";
+import withAuth from "@/app/components/withAuth";
 
-export default function RenderAssignment() {
-    const params = useParams(); // Extract route parameters
-    const { asgnId } = params; // Dynamic segment [asgnName]
-    if (typeof asgnId === "string") {
-      return <Assignment assignmentId={decodeURIComponent(asgnId)}/>
-    }
+function AssignmentPage() {
+  const { asgnId } = useParams();
+  if (typeof asgnId !== "string") return null;
+
+  return <Assignment assignmentId={decodeURIComponent(asgnId)} />;
 }
+
+export default withAuth(AssignmentPage);

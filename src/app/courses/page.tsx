@@ -1,6 +1,10 @@
-import React from "react";
-import Courses from "@/app/components/Courses/Courses";
+"use client";
 
-export default function RenderCourses() {
-    return <Courses />;
+import Courses from "../components/Courses/Courses";
+import withAuth from "@/app/components/withAuth";
+
+function CoursesPage() {
+  return <Courses />;
 }
+
+export default withAuth(CoursesPage);
