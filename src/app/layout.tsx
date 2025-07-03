@@ -17,7 +17,7 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <Navbar />
-          <main className="p-6">{children}</main>
+          <main>{children}</main>
         </AuthProvider>
       </body>
     </html>
