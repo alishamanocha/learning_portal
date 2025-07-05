@@ -5,9 +5,14 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 import QuestionCard from "./QuestionCard";
 
+type QuestionType = 'free_response' | 'multiple_choice' | 'multiple_choice_multiple' | 'true_false' | 'matching';
+
 type Question = {
     prompt: string;
-    correctAnswer: string;
+    type: QuestionType;
+    correctAnswer: string | string[] | boolean | Record<string, string>;
+    options?: string[]; // For multiple choice questions
+    pairs?: { left: string; right: string }[]; // For matching questions
 };
   
 type AssignmentDoc = {
@@ -21,7 +26,7 @@ export default function Assignment({ assignmentId }: { assignmentId: string }) {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [assignmentTitle, setAssignmentTitle] = useState<string>("");
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<string[]>(Array(questions.length).fill(""));
+    const [answers, setAnswers] = useState<(string | string[] | boolean | Record<string, string>)[]>([]);
     const [score, setScore] = useState(0);
     const [submitted, setSubmitted] = useState<boolean[]>([]);
     const [feedback, setFeedback] = useState("");
@@ -39,7 +44,22 @@ export default function Assignment({ assignmentId }: { assignmentId: string }) {
                     const data = snapshot.data() as AssignmentDoc;
                     setAssignmentTitle(data.title);
                     setQuestions(data.questions);
-                    setAnswers(new Array(data.questions.length).fill(""));
+                    // Initialize answers based on question types
+                    const initialAnswers = data.questions.map(q => {
+                        switch (q.type) {
+                            case 'multiple_choice':
+                            case 'true_false':
+                                return "";
+                            case 'multiple_choice_multiple':
+                                return [] as string[];
+                            case 'matching':
+                                return {} as Record<string, string>;
+                            case 'free_response':
+                            default:
+                                return "";
+                        }
+                    });
+                    setAnswers(initialAnswers);
                     setSubmitted(new Array(data.questions.length).fill(false));
                 } else {
                     setNotFound(true);
@@ -94,7 +114,7 @@ export default function Assignment({ assignmentId }: { assignmentId: string }) {
         );
     }
 
-    const handleAnswerChange = (value: string) => {
+    const handleAnswerChange = (value: string | string[] | boolean | Record<string, string>) => {
         const updated = [...answers];
         updated[currentQuestionIndex] = value;
         setAnswers(updated);
@@ -104,11 +124,58 @@ export default function Assignment({ assignmentId }: { assignmentId: string }) {
     const handleSubmit = () => {
         if (submitted[currentQuestionIndex]) return;
 
-        const correct = questions[currentQuestionIndex].correctAnswer;
-        const userAnswer = answers[currentQuestionIndex].trim();
+        const question = questions[currentQuestionIndex];
+        const correct = question.correctAnswer;
+        const userAnswer = answers[currentQuestionIndex];
 
-        const isCorrect = userAnswer === correct;
-        setFeedback(isCorrect ? "Correct!" : `Incorrect. Correct answer: ${correct}`);
+        let isCorrect = false;
+        let feedbackMessage = "";
+
+        switch (question.type) {
+            case 'free_response':
+                const userText = typeof userAnswer === 'string' ? userAnswer.trim() : '';
+                const correctText = typeof correct === 'string' ? correct : '';
+                isCorrect = userText.toLowerCase() === correctText.toLowerCase();
+                feedbackMessage = isCorrect ? "Correct!" : `Incorrect. Correct answer: ${correctText}`;
+                break;
+            
+            case 'multiple_choice':
+                isCorrect = userAnswer === correct;
+                feedbackMessage = isCorrect ? "Correct!" : `Incorrect. Correct answer: ${correct}`;
+                break;
+            
+            case 'multiple_choice_multiple':
+                if (Array.isArray(userAnswer) && Array.isArray(correct)) {
+                    const userSet = new Set(userAnswer);
+                    const correctSet = new Set(correct);
+                    isCorrect = userSet.size === correctSet.size && 
+                               [...userSet].every(item => correctSet.has(item));
+                    feedbackMessage = isCorrect ? "Correct!" : `Incorrect. Correct answers: ${correct.join(', ')}`;
+                }
+                break;
+            
+            case 'true_false':
+                isCorrect = userAnswer === correct;
+                feedbackMessage = isCorrect ? "Correct!" : `Incorrect. Correct answer: ${correct}`;
+                break;
+            
+            case 'matching':
+                if (typeof userAnswer === 'object' && typeof correct === 'object' && 
+                    !Array.isArray(userAnswer) && !Array.isArray(correct)) {
+                    const userPairs = Object.entries(userAnswer as Record<string, string>);
+                    const correctPairs = Object.entries(correct as Record<string, string>);
+                    isCorrect = userPairs.length === correctPairs.length &&
+                               userPairs.every(([key, value]) => (correct as Record<string, string>)[key] === value);
+                    feedbackMessage = isCorrect ? "Correct!" : "Incorrect. Check your matching pairs.";
+                }
+                break;
+            
+            default:
+                isCorrect = false;
+                feedbackMessage = "Error: Unknown question type";
+        }
+
+        setFeedback(feedbackMessage);
 
         if (isCorrect) {
             setScore((prev) => prev + 1);
@@ -217,7 +284,22 @@ export default function Assignment({ assignmentId }: { assignmentId: string }) {
                                         setShowResults(false);
                                         setScore(0);
                                         setSubmitted(new Array(questions.length).fill(false));
-                                        setAnswers(new Array(questions.length).fill(""));
+                                        // Reset answers based on question types
+                                        const resetAnswers = questions.map(q => {
+                                            switch (q.type) {
+                                                case 'multiple_choice':
+                                                case 'true_false':
+                                                    return "";
+                                                case 'multiple_choice_multiple':
+                                                    return [] as string[];
+                                                case 'matching':
+                                                    return {} as Record<string, string>;
+                                                case 'free_response':
+                                                default:
+                                                    return "";
+                                            }
+                                        });
+                                        setAnswers(resetAnswers);
                                     }}
                                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                                 >
