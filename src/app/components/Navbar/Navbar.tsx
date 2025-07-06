@@ -6,7 +6,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
 
 export default function Navbar() {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
 
   if (loading) return null;
 
@@ -41,14 +41,17 @@ export default function Navbar() {
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
-            {user ? (
+            {user && userProfile ? (
               <div className="flex items-center space-x-4">
                 {/* User Info */}
                 <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                   <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium">
-                    {user.email?.charAt(0).toUpperCase() || 'U'}
+                    {userProfile.name?.charAt(0).toUpperCase() || userProfile.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
-                  <span className="hidden lg:inline">{user.email}</span>
+                  <div className="hidden lg:flex flex-col">
+                    <span className="font-medium text-gray-900 dark:text-white">{userProfile.name}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{userProfile.email}</span>
+                  </div>
                 </div>
                 
                 {/* Sign Out Button */}

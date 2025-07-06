@@ -42,3 +42,9 @@ export interface MatchingQuestion extends BaseQuestion {
     pairs: MatchingPair[];
     correctAnswer: Record<string, string>;
 }
+
+// ---------- User ----------
+export interface User {
+    name: string;
+    email: string;
+}
