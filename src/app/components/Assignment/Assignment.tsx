@@ -4,17 +4,8 @@ import React, { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 import QuestionCard from "./QuestionCard";
+import { Question } from "../../types/firestore";
 
-type QuestionType = 'free_response' | 'multiple_choice' | 'multiple_choice_multiple' | 'true_false' | 'matching';
-
-type Question = {
-    prompt: string;
-    type: QuestionType;
-    correctAnswer: string | string[] | boolean | Record<string, string>;
-    options?: string[]; // For multiple choice questions
-    pairs?: { left: string; right: string }[]; // For matching questions
-};
-  
 type AssignmentDoc = {
     title: string;
     questions: Question[];

@@ -1,19 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+import { Question } from "../../types/firestore";
 
 // TODO: questions may have multiple formats (e.g., multiple choice, free response), and answer may not be a number
 // TODO: allow LateX formatting for questions
 // TODO: allow images to be added to questions
-type QuestionType = 'free_response' | 'multiple_choice' | 'multiple_choice_multiple' | 'true_false' | 'matching';
-
-type Question = {
-    prompt: string;
-    type: QuestionType;
-    correctAnswer: string | string[] | boolean | Record<string, string>;
-    options?: string[]; // For multiple choice questions
-    pairs?: { left: string; right: string }[]; // For matching questions
-};
 
 type Props = {
     question: Question;
